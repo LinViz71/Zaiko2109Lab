@@ -1,8 +1,6 @@
 package tech.reliab.course.zaiko.bank.service;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
 import tech.reliab.course.zaiko.bank.entity.BankAtm;
-import tech.reliab.course.zaiko.bank.entity.BankOffice;
 import tech.reliab.course.zaiko.bank.entity.Employee;
 
 /**
@@ -17,24 +15,21 @@ public interface BankAtmService {
      * @param name             the name
      * @param status           the status
      * @param totalMoney       the total money
-     * @param bankOffice       the bank office
-     * @param servingEmployee  the serving employee
      * @param canDispenseMoney the can dispense money
      * @param canAcceptMoney   the can accept money
      * @param maintenanceCost  the maintenance cost
-     * @param bank             the bank
+     * @param servingEmployee  the serving employee
      * @return the bank atm
      */
     BankAtm createBankAtm(Long id,
                           String name,
+                          String address,
                           String status,
-                          Bank bank,
-                          BankOffice bankOffice,
-                          Employee servingEmployee,
+                          Double totalMoney,
+                          Double maintenanceCost,
                           Boolean canDispenseMoney,
                           Boolean canAcceptMoney,
-                          Double totalMoney,
-                          Double maintenanceCost);
+                          Employee servingEmployee);
 
     /**
      * Get bank atm by id.

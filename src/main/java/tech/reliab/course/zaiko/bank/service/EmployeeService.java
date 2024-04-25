@@ -1,6 +1,5 @@
 package tech.reliab.course.zaiko.bank.service;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
 import tech.reliab.course.zaiko.bank.entity.BankOffice;
 import tech.reliab.course.zaiko.bank.entity.Employee;
 
@@ -17,8 +16,7 @@ public interface EmployeeService {
      * @param id             the id
      * @param fullName       the full name
      * @param dateOfBirth    the date of birth
-     * @param position       the position
-     * @param bank           the bank
+     * @param position       the position=
      * @param isRemote       the is remote
      * @param bankOffice     the bank office
      * @param canIssueCredit the can issue credit
@@ -29,11 +27,10 @@ public interface EmployeeService {
                             String fullName,
                             LocalDate dateOfBirth,
                             String position,
-                            Bank bank,
                             Boolean isRemote,
-                            BankOffice bankOffice,
                             Boolean canIssueCredit,
-                            Double salary);
+                            Double salary,
+                            BankOffice bankOffice);
 
     /**
      * Gets employee by id.

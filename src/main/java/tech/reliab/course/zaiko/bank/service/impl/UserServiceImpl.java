@@ -1,12 +1,10 @@
 package tech.reliab.course.zaiko.bank.service.impl;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
 import tech.reliab.course.zaiko.bank.entity.User;
 import tech.reliab.course.zaiko.bank.service.UserService;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class UserServiceImpl implements UserService {
@@ -17,7 +15,6 @@ public class UserServiceImpl implements UserService {
      * @param dateOfBirth the date of birth
      * @param placeOfWork the place of work
      *                    <br>Monthly income (generated randomly, but not more than 10,000)
-     * @param banks       the banks
      *                    <br>Credit accounts (by default empty)
      *                    <br>Debit accounts (by default empty)
      *                    <br>Credit rating for the bank (generated randomly based on
@@ -28,8 +25,7 @@ public class UserServiceImpl implements UserService {
     public User createUser(Long id,
                            String fullName,
                            LocalDate dateOfBirth,
-                           String placeOfWork,
-                           List<Bank> banks) {
+                           String placeOfWork) {
         Random random = new Random();
         User user = User.builder()
                 .id(id)
@@ -37,7 +33,7 @@ public class UserServiceImpl implements UserService {
                 .dateOfBirth(dateOfBirth)
                 .placeOfWork(placeOfWork)
                 .monthlyIncome(Math.round(random.nextDouble(10_000) * 100.0) / 100.0)
-                .banks(banks)
+                .banks(new ArrayList<>())
                 .creditAccounts(new ArrayList<>())
                 .paymentAccounts(new ArrayList<>())
                 .build();
@@ -53,7 +49,6 @@ public class UserServiceImpl implements UserService {
             case 10 -> 1000;
             default -> 100;
         });
-        banks.forEach(bank -> bank.setCustomersAmount(bank.getCustomersAmount() + 1));
         return user;
     }
 

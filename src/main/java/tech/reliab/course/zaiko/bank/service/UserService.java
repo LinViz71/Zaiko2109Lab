@@ -1,10 +1,8 @@
 package tech.reliab.course.zaiko.bank.service;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
 import tech.reliab.course.zaiko.bank.entity.User;
 
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * The interface User service.
@@ -18,14 +16,9 @@ public interface UserService {
      * @param fullName    the full name
      * @param dateOfBirth the date of birth
      * @param placeOfWork the place of work
-     * @param banks       the banks
      * @return the user
      */
-    User createUser(Long id,
-                    String fullName,
-                    LocalDate dateOfBirth,
-                    String placeOfWork,
-                    List<Bank> banks);
+    User createUser(Long id, String fullName, LocalDate dateOfBirth, String placeOfWork);
 
     /**
      * Gets user by id.

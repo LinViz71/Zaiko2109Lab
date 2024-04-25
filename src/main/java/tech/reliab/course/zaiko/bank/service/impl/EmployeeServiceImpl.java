@@ -1,11 +1,11 @@
 package tech.reliab.course.zaiko.bank.service.impl;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
 import tech.reliab.course.zaiko.bank.entity.BankOffice;
 import tech.reliab.course.zaiko.bank.entity.Employee;
 import tech.reliab.course.zaiko.bank.service.EmployeeService;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 public class EmployeeServiceImpl implements EmployeeService {
 
@@ -14,7 +14,6 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param fullName       the full name
      * @param dateOfBirth    the date of birth
      * @param position       the position
-     * @param bank           the bank
      * @param isRemote       is remote
      * @param bankOffice     the bank office
      * @param canIssueCredit can issue credit
@@ -26,23 +25,24 @@ public class EmployeeServiceImpl implements EmployeeService {
                                    String fullName,
                                    LocalDate dateOfBirth,
                                    String position,
-                                   Bank bank,
                                    Boolean isRemote,
-                                   BankOffice bankOffice,
                                    Boolean canIssueCredit,
-                                   Double salary) {
-        bank.setEmployeesAmount(bank.getEmployeesAmount()+1);
-        return Employee.builder()
+                                   Double salary,
+                                   BankOffice bankOffice) {
+        Employee employee = Employee.builder()
                 .id(id)
                 .fullName(fullName)
                 .dateOfBirth(dateOfBirth)
                 .position(position)
-                .bank(bank)
-                .isRemote(isRemote)
-                .bankOffice(bankOffice)
-                .canIssueCredit(canIssueCredit)
                 .salary(salary)
+                .isRemote(isRemote)
+                .canIssueCredit(canIssueCredit)
+                .bankOffice(bankOffice)
+                .servedAtms(new ArrayList<>())
+                .providedCreditAccounts(new ArrayList<>())
                 .build();
+        bankOffice.getEmployees().add(employee);
+        return employee;
     }
 
     @Override

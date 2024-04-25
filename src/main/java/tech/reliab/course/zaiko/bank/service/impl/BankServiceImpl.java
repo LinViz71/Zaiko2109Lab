@@ -3,6 +3,7 @@ package tech.reliab.course.zaiko.bank.service.impl;
 import tech.reliab.course.zaiko.bank.entity.Bank;
 import tech.reliab.course.zaiko.bank.service.BankService;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -28,12 +29,11 @@ public class BankServiceImpl implements BankService {
         Bank bank = Bank.builder()
                 .id(id)
                 .name(name)
-                .officesAmount(0)
-                .atmsAmount(0)
-                .employeesAmount(0)
-                .customersAmount(0)
                 .rating(random.nextInt(101))
                 .totalMoney(Math.round(random.nextDouble(1_000_000) * 100.0) / 100.0)
+                .offices(new ArrayList<>())
+                .users(new ArrayList<>())
+                .paymentAccounts(new ArrayList<>())
                 .build();
         bank.setInterestRate(Math.round((20 - bank.getRating() * 0.2) * 100.0) / 100.0);
         return bank;

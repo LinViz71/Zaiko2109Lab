@@ -19,33 +19,34 @@ public class CreditAccountServiceImpl implements CreditAccountService {
      *                             <br>Interest rate (equals the interest rate of the bank)
      * @param providedEmployee     the provided employee
      * @param paymentAccount       the payment account
-     * @param bank                 the bank
      * @return {@link CreditAccount}
      */
     @Override
     public CreditAccount createCreditAccount(Long id,
-                                             User user,
                                              LocalDate startDate,
                                              LocalDate endDate,
                                              Integer monthsOfCreditAmount,
                                              Double creditSum,
                                              Double monthlyPayment,
+                                             User user,
                                              Employee providedEmployee,
-                                             PaymentAccount paymentAccount,
-                                             Bank bank) {
+                                             PaymentAccount paymentAccount) {
         CreditAccount creditAccount = CreditAccount.builder()
                 .id(id)
                 .user(user)
-                .bankName(bank.getName())
                 .startDate(startDate)
                 .endDate(endDate)
                 .monthsOfCreditAmount(monthsOfCreditAmount)
                 .creditSum(creditSum)
                 .monthlyPayment(monthlyPayment)
-                .interestRate(bank.getInterestRate())
                 .providedEmployee(providedEmployee)
                 .paymentAccount(paymentAccount)
                 .build();
+        Bank bankOfProvidedEmployee = providedEmployee.getBankOffice().getBank();
+        creditAccount.setBank(bankOfProvidedEmployee);
+        creditAccount.setInterestRate(bankOfProvidedEmployee.getInterestRate());
+
+        providedEmployee.getProvidedCreditAccounts().add(creditAccount);
         user.getCreditAccounts().add(creditAccount);
         return creditAccount;
     }

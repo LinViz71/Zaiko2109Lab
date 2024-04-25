@@ -18,23 +18,52 @@ public class User {
     private LocalDate dateOfBirth;
     private String placeOfWork;
     private Double monthlyIncome;
+    private Integer creditRating;
     private List<Bank> banks;
     private List<CreditAccount> creditAccounts;
     private List<PaymentAccount> paymentAccounts;
-    private Integer creditRating;
 
     @Override
     public String toString() {
-        return "User {" +
-                "\nid=" + id +
-                ", \nfullName='" + fullName + '\'' +
-                ", \ndateOfBirth=" + dateOfBirth.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) +
-                ", \nplaceOfWork='" + placeOfWork + '\'' +
-                ", \nmonthlyIncome=" + monthlyIncome +
-                ", \nbanks' ids=" + banks.stream().map(Bank::getId).toList() +
-                ", \ncreditAccounts' ids=" + creditAccounts.stream().map(CreditAccount::getId).toList() +
-                ", \npaymentAccounts' ids=" + paymentAccounts.stream().map(PaymentAccount::getId).toList() +
-                ", \ncreditRating=" + creditRating +
-                "\n}";
+        StringBuilder stringBuilder = new StringBuilder();
+        String creditAccountsToString = stringBuilder
+                .append(creditAccounts.stream()
+                        .map(creditAccount -> "№" + creditAccount.getId())
+                        .toList()
+                )
+                .substring(1, stringBuilder.length() - 1);
+        stringBuilder = new StringBuilder();
+        String paymentAccountsToString = stringBuilder
+                .append(paymentAccounts.stream()
+                        .map(paymentAccount -> "№" + paymentAccount.getId())
+                        .toList()
+                )
+                .substring(1, stringBuilder.length() - 1);
+        stringBuilder = new StringBuilder();
+        String banksToString = stringBuilder
+                .append(banks.stream()
+                        .map(Bank::getName)
+                        .toList()
+                )
+                .substring(1, stringBuilder.length() - 1);
+        return """
+                    fullName: %s,
+                    dateOfBirth: %s,
+                    placeOfWork: %s,
+                    monthlyIncome: %.2f,
+                    creditRating: %d,
+                    banks: %s,
+                    creditAccounts: %s,
+                    paymentAccounts: %s
+                """.formatted(
+                fullName,
+                dateOfBirth.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                placeOfWork,
+                monthlyIncome,
+                creditRating,
+                banksToString,
+                creditAccountsToString,
+                paymentAccountsToString
+        );
     }
 }

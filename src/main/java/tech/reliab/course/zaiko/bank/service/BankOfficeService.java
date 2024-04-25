@@ -14,27 +14,25 @@ public interface BankOfficeService {
      * @param id               the id
      * @param name             the name
      * @param address          the address
-     * @param isWorking        the is working
-     * @param canPlaceAtm      the can place atm
-     * @param amountOfAtms     the amount of atms
-     * @param canIssueCredit   the can issue credit
-     * @param canDispenseMoney the can dispense money
-     * @param canAcceptMoney   the can accept money
+     * @param isWorking        is working
+     * @param canPlaceAtm      can place atm
      * @param rentCost         the rent cost
+     * @param canIssueCredit   can issue credit
+     * @param canDispenseMoney can dispense money
+     * @param canAcceptMoney   can accept money
      * @param bank             the bank
      * @return the bank office
      */
     BankOffice createBankOffice(Long id,
                                 String name,
                                 String address,
+                                Double totalMoney,
+                                Double rentCost,
                                 Boolean isWorking,
                                 Boolean canPlaceAtm,
-                                Integer amountOfAtms,
                                 Boolean canIssueCredit,
                                 Boolean canDispenseMoney,
                                 Boolean canAcceptMoney,
-                                Double totalMoney,
-                                Double rentCost,
                                 Bank bank);
 
     /**

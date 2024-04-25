@@ -16,24 +16,22 @@ public interface CreditAccountService {
      * @param user                the user
      * @param startDate           the start date
      * @param endDate             the end date
-     * @param monthOfCreditAmount the month of credit amount
+     * @param monthsOfCreditAmount the month of credit amount
      * @param creditSum           the credit sum
      * @param monthlyPayment      the monthly payment
      * @param providedEmployee    the provided employee
      * @param paymentAccount      the payment account
-     * @param bank                the bank
      * @return the credit account
      */
     CreditAccount createCreditAccount(Long id,
-                                      User user,
                                       LocalDate startDate,
                                       LocalDate endDate,
-                                      Integer monthOfCreditAmount,
+                                      Integer monthsOfCreditAmount,
                                       Double creditSum,
                                       Double monthlyPayment,
+                                      User user,
                                       Employee providedEmployee,
-                                      PaymentAccount paymentAccount,
-                                      Bank bank);
+                                      PaymentAccount paymentAccount);
 
     /**
      * Gets credit account by id.

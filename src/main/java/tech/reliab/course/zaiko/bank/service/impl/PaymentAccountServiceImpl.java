@@ -20,11 +20,11 @@ public class PaymentAccountServiceImpl implements PaymentAccountService {
         PaymentAccount paymentAccount = PaymentAccount.builder()
                 .id(id)
                 .user(user)
-                .bankName(bank.getName())
+                .bank(bank)
                 .balance(0.0)
                 .build();
-
         user.getPaymentAccounts().add(paymentAccount);
+        bank.getPaymentAccounts().add(paymentAccount);
         return paymentAccount;
     }
 
