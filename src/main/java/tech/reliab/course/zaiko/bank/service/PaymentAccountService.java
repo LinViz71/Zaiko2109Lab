@@ -1,43 +1,21 @@
 package tech.reliab.course.zaiko.bank.service;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
-import tech.reliab.course.zaiko.bank.entity.PaymentAccount;
-import tech.reliab.course.zaiko.bank.entity.User;
+import tech.reliab.course.zaiko.bank.model.dto.request.PaymentAccountRequestDto;
+import tech.reliab.course.zaiko.bank.model.dto.response.PaymentAccountResponseDto;
 
-/**
- * The interface Payment account service.
- */
+import java.util.List;
+
 public interface PaymentAccountService {
 
-    /**
-     * Create payment account.
-     *
-     * @param id      the id
-     * @param user    the user
-     * @param bank    the bank
-     * @return the payment account
-     */
-    PaymentAccount createPaymentAccount(Long id, User user, Bank bank);
+    void create(PaymentAccountRequestDto paymentAccountRequestDto,
+                Long userId);
 
-    /**
-     * Gets payment account by id.
-     *
-     * @param id the id
-     * @return the payment account by id
-     */
-    PaymentAccount getPaymentAccountById(Long id);
+    PaymentAccountResponseDto getById(Long id);
 
-    /**
-     * Update payment account by id.
-     *
-     * @param id the id
-     */
-    void updatePaymentAccountById(Long id);
+    List<PaymentAccountResponseDto> getAllByUserId(Long userId);
 
-    /**
-     * Delete payment account by id.
-     *
-     * @param id the id
-     */
-    void deletePaymentAccountById(Long id);
+    void update(PaymentAccountResponseDto paymentAccountResponseDto,
+                Long userId);
+
+    void deleteById(Long id);
 }

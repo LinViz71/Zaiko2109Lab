@@ -1,78 +1,76 @@
 package tech.reliab.course.zaiko.bank.service.impl;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
-import tech.reliab.course.zaiko.bank.entity.BankOffice;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tech.reliab.course.zaiko.bank.exception.CustomNotFoundException;
+import tech.reliab.course.zaiko.bank.model.dto.request.BankOfficeRequestDto;
+import tech.reliab.course.zaiko.bank.model.dto.response.BankOfficeResponseDto;
+import tech.reliab.course.zaiko.bank.model.entity.Bank;
+import tech.reliab.course.zaiko.bank.model.entity.BankOffice;
+import tech.reliab.course.zaiko.bank.repository.BankOfficeRepository;
+import tech.reliab.course.zaiko.bank.repository.BankRepository;
 import tech.reliab.course.zaiko.bank.service.BankOfficeService;
+import tech.reliab.course.zaiko.bank.utlis.MappingUtils;
 
+import java.util.List;
+
+@Service
+@AllArgsConstructor
+@Transactional(readOnly = true)
 public class BankOfficeServiceImpl implements BankOfficeService {
 
-    /**
-     * @param id               the id
-     * @param name             the name
-     * @param address          the address
-     * @param isWorking        is working
-     * @param canPlaceAtm      can place atm (directly depends on the total number of ATMs of the bank)
-     * @param atmsAmount       the amount of atms
-     * @param canIssueCredit   can issue credit
-     * @param canDispenseMoney can dispense money
-     * @param canAcceptMoney   can accept money
-     * @param totalMoney       the total money (directly depends on the field "Total money in the bank")
-     * @param rentCost         the rent cost
-     * @param bank             the bank
-     * @return {@link BankOffice}
-     */
+    private final BankRepository bankRepository;
+    private final BankOfficeRepository bankOfficeRepository;
+    private final MappingUtils mappingUtils;
+
     @Override
-    public BankOffice createBankOffice(Long id,
-                                       String name,
-                                       String address,
-                                       Boolean isWorking,
-                                       Boolean canPlaceAtm,
-                                       Integer atmsAmount,
-                                       Boolean canIssueCredit,
-                                       Boolean canDispenseMoney,
-                                       Boolean canAcceptMoney,
-                                       Double totalMoney,
-                                       Double rentCost,
-                                       Bank bank) {
-        BankOffice bankOffice = BankOffice
-                .builder()
-                .id(id)
-                .name(name)
-                .address(address)
-                .isWorking(isWorking)
-                .canPlaceAtm(canPlaceAtm)
-                .canIssueCredit(canIssueCredit)
-                .canDispenseMoney(canDispenseMoney)
-                .canAcceptMoney(canAcceptMoney)
-                .totalMoney(bank.getTotalMoney())
-                .rentCost(rentCost)
-                .build();
-        if (bank.getTotalMoney() < totalMoney) {
-            throw new IllegalArgumentException("Wrong money amount in bank/office");
-        } else {
-            bankOffice.setTotalMoney(totalMoney);
+    @Transactional
+    public void create(BankOfficeRequestDto bankOfficeRequestDto,
+                       Long bankId) {
+        BankOffice bankOffice = mappingUtils.mapToBankOfficeEntity(bankOfficeRequestDto);
+        bankOffice.setBank(bankRepository
+                .findById(bankId)
+                .orElseThrow(() -> new CustomNotFoundException(Bank.class, bankId)));
+        bankOfficeRepository.save(bankOffice);
+    }
+
+    @Override
+    public BankOfficeResponseDto getById(Long id) {
+        return mappingUtils.
+                mapToBankOfficeResponseDto(bankOfficeRepository
+                        .findById(id)
+                        .orElseThrow(() -> new CustomNotFoundException(BankOffice.class, id)));
+    }
+
+    @Override
+    public List<BankOfficeResponseDto> getAllByBankId(Long bankId) {
+        if (!bankRepository.existsById(bankId)) {
+            throw new CustomNotFoundException(Bank.class, bankId);
         }
-        if (atmsAmount > bank.getAtmsAmount()) {
-            throw new IllegalArgumentException("Wrong ATMs amount in bank/office");
-        } else {
-            bankOffice.setAtmsAmount(atmsAmount);
+        return bankOfficeRepository
+                .findAllByBank_Id(bankId)
+                .stream()
+                .map(mappingUtils::mapToBankOfficeResponseDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void update(BankOfficeResponseDto bankOfficeResponseDto, Long bankId) {
+        BankOffice bankOffice = mappingUtils.mapToBankOfficeEntity(bankOfficeResponseDto);
+        bankOffice.setBank(bankRepository
+                .findById(bankId)
+                .orElseThrow(() -> new CustomNotFoundException(Bank.class, bankId)));
+        bankOfficeRepository.save(bankOffice);
+    }
+
+    @Override
+    @Transactional
+    public void deleteById(Long id) {
+        if (!bankOfficeRepository.existsById(id)) {
+            throw new CustomNotFoundException(Bank.class, id);
         }
-        bank.setOfficesAmount(bank.getOfficesAmount()+1);
-        return bankOffice;
-    }
-
-    @Override
-    public BankOffice getBankOfficeById(Long id) {
-        return null;
-    }
-
-    @Override
-    public void updateBankOfficeById(Long id) {
-
-    }
-
-    @Override
-    public void deleteBankOfficeById(Long id) {
-
+        bankOfficeRepository.deleteById(id);
     }
 }

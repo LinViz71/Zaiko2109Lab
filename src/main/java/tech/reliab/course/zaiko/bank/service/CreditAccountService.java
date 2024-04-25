@@ -1,59 +1,20 @@
 package tech.reliab.course.zaiko.bank.service;
 
-import tech.reliab.course.zaiko.bank.entity.*;
+import tech.reliab.course.zaiko.bank.model.dto.request.CreditAccountRequestDto;
+import tech.reliab.course.zaiko.bank.model.dto.response.CreditAccountResponseDto;
 
-import java.time.LocalDate;
+import java.util.List;
 
-/**
- * The interface CreditAccountService.
- */
 public interface CreditAccountService {
 
-    /**
-     * Create credit account.
-     *
-     * @param id                  the id
-     * @param user                the user
-     * @param startDate           the start date
-     * @param endDate             the end date
-     * @param monthOfCreditAmount the month of credit amount
-     * @param creditSum           the credit sum
-     * @param monthlyPayment      the monthly payment
-     * @param providedEmployee    the provided employee
-     * @param paymentAccount      the payment account
-     * @param bank                the bank
-     * @return the credit account
-     */
-    CreditAccount createCreditAccount(Long id,
-                                      User user,
-                                      LocalDate startDate,
-                                      LocalDate endDate,
-                                      Integer monthOfCreditAmount,
-                                      Double creditSum,
-                                      Double monthlyPayment,
-                                      Employee providedEmployee,
-                                      PaymentAccount paymentAccount,
-                                      Bank bank);
+    void create(CreditAccountRequestDto creditAccountRequestDto,
+                Long payAccId);
 
-    /**
-     * Gets credit account by id.
-     *
-     * @param id the id
-     * @return the credit account by id
-     */
-    CreditAccount getCreditAccountById(Long id);
+    CreditAccountResponseDto getById(Long id);
 
-    /**
-     * Update credit account by id.
-     *
-     * @param id the id
-     */
-    void updateCreditAccountById(Long id);
+    List<CreditAccountResponseDto> getAllByPayAccId(Long payAccId);
 
-    /**
-     * Delete credit account by id.
-     *
-     * @param id the id
-     */
-    void deleteCreditAccountById(Long id);
+    void update(CreditAccountResponseDto bankAtmResponseDto);
+
+    void deleteById(Long id);
 }

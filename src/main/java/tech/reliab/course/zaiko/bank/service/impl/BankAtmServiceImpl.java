@@ -1,72 +1,82 @@
 package tech.reliab.course.zaiko.bank.service.impl;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
-import tech.reliab.course.zaiko.bank.entity.BankAtm;
-import tech.reliab.course.zaiko.bank.entity.BankOffice;
-import tech.reliab.course.zaiko.bank.entity.Employee;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tech.reliab.course.zaiko.bank.exception.CustomNotFoundException;
+import tech.reliab.course.zaiko.bank.model.dto.request.BankAtmRequestDto;
+import tech.reliab.course.zaiko.bank.model.dto.response.BankAtmResponseDto;
+import tech.reliab.course.zaiko.bank.model.entity.BankAtm;
+import tech.reliab.course.zaiko.bank.model.entity.Employee;
+import tech.reliab.course.zaiko.bank.repository.BankAtmRepository;
+import tech.reliab.course.zaiko.bank.repository.EmployeeRepository;
 import tech.reliab.course.zaiko.bank.service.BankAtmService;
+import tech.reliab.course.zaiko.bank.utlis.MappingUtils;
 
+import java.util.List;
+
+@Service
+@AllArgsConstructor
+@Transactional(readOnly = true)
 public class BankAtmServiceImpl implements BankAtmService {
 
-    /**
-     * @param id               the id
-     * @param name             the name
-     *                         <br>Address (matches the address of the bank office)
-     * @param status           the status (working/not working/no money)
-     * @param bank             the bank
-     * @param bankOffice       the bank office (an ATM can only be located in a bank office)
-     * @param servingEmployee  the serving employee
-     * @param canDispenseMoney can dispense money
-     * @param canAcceptMoney   can accept money
-     * @param totalMoney       the total money
-     * @param maintenanceCost  the maintenance cost
-     * @return {@link BankAtm}
-     */
+    private final EmployeeRepository employeeRepository;
+    private final BankAtmRepository bankAtmRepository;
+    private final MappingUtils mappingUtils;
+
+    @Transactional
     @Override
-    public BankAtm createBankAtm(Long id,
-                                 String name,
-                                 String status,
-                                 Bank bank,
-                                 BankOffice bankOffice,
-                                 Employee servingEmployee,
-                                 Boolean canDispenseMoney,
-                                 Boolean canAcceptMoney,
-                                 Double totalMoney,
-                                 Double maintenanceCost) {
-        BankAtm bankAtm = BankAtm.builder()
-                .id(id)
-                .name(name)
-                .address(bankOffice.getAddress())
-                .status(status)
-                .bank(bank)
-                .bankOffice(bankOffice)
-                .servingEmployee(servingEmployee)
-                .canDispenseMoney(canDispenseMoney)
-                .canAcceptMoney(canAcceptMoney)
-                .maintenanceCost(maintenanceCost)
-                .build();
-        bank.setAtmsAmount(bank.getAtmsAmount() + 1);
-        bankOffice.setAtmsAmount(bankOffice.getAtmsAmount() + 1);
-        if (bank.getTotalMoney() < totalMoney) {
-            throw new IllegalArgumentException("Денег в банке меньше, чем передаётся банкомату");
-        } else {
-            bankAtm.setTotalMoney(totalMoney);
+    public void create(BankAtmRequestDto bankAtmRequestDto,
+                       Long servingEmployeeId) {
+        BankAtm bankAtm = mappingUtils.mapToBankAtmEntity(bankAtmRequestDto);
+        bankAtm.setServingEmployee(employeeRepository
+                .findById(servingEmployeeId)
+                .orElseThrow(() -> new CustomNotFoundException(Employee.class, servingEmployeeId)));
+        bankAtmRepository.save(bankAtm);
+    }
+
+    @Override
+    public BankAtmResponseDto getById(Long id) {
+        return mappingUtils
+                .mapToBankAtmResponseDto(
+                        bankAtmRepository
+                                .findById(id)
+                                .orElseThrow(() -> new CustomNotFoundException(BankAtm.class, id))
+                );
+    }
+
+
+    @Override
+    public List<BankAtmResponseDto> getAllByServingEmployeeId(Long servingEmployeeId) {
+        if (!employeeRepository.existsById(servingEmployeeId)) {
+            throw new CustomNotFoundException(Employee.class, servingEmployeeId);
         }
-        return bankAtm;
+        return bankAtmRepository
+                .findAllByServingEmployee_Id(servingEmployeeId)
+                .stream()
+                .map(mappingUtils::mapToBankAtmResponseDto)
+                .toList();
     }
 
+    @Transactional
     @Override
-    public BankAtm getBankAtmById(Long id) {
-        return null;
+    public void update(BankAtmResponseDto bankAtmResponseDto,
+                       Long servingEmployeeId) {
+        BankAtm bankAtm = mappingUtils.mapToBankAtmEntity(bankAtmResponseDto);
+        bankAtm.setServingEmployee(
+                employeeRepository
+                        .findById(servingEmployeeId)
+                        .orElseThrow(() -> new CustomNotFoundException(Employee.class, servingEmployeeId))
+        );
+        bankAtmRepository.save(bankAtm);
     }
 
+    @Transactional
     @Override
-    public void updateBankAtmById(Long id, BankAtm bankAtm) {
-
-    }
-
-    @Override
-    public void deleteBankAtmById(Long id, BankAtm bankAtm) {
-
+    public void deleteById(Long id) {
+        if (!bankAtmRepository.existsById(id)) {
+            throw new CustomNotFoundException(BankAtm.class, id);
+        }
+        bankAtmRepository.deleteById(id);
     }
 }

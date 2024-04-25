@@ -1,61 +1,20 @@
 package tech.reliab.course.zaiko.bank.service;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
-import tech.reliab.course.zaiko.bank.entity.BankOffice;
+import tech.reliab.course.zaiko.bank.model.dto.request.BankOfficeRequestDto;
+import tech.reliab.course.zaiko.bank.model.dto.response.BankOfficeResponseDto;
 
-/**
- * The interface Bank office service.
- */
+import java.util.List;
+
 public interface BankOfficeService {
 
-    /**
-     * Create bank office.
-     *
-     * @param id               the id
-     * @param name             the name
-     * @param address          the address
-     * @param isWorking        the is working
-     * @param canPlaceAtm      the can place atm
-     * @param amountOfAtms     the amount of atms
-     * @param canIssueCredit   the can issue credit
-     * @param canDispenseMoney the can dispense money
-     * @param canAcceptMoney   the can accept money
-     * @param rentCost         the rent cost
-     * @param bank             the bank
-     * @return the bank office
-     */
-    BankOffice createBankOffice(Long id,
-                                String name,
-                                String address,
-                                Boolean isWorking,
-                                Boolean canPlaceAtm,
-                                Integer amountOfAtms,
-                                Boolean canIssueCredit,
-                                Boolean canDispenseMoney,
-                                Boolean canAcceptMoney,
-                                Double totalMoney,
-                                Double rentCost,
-                                Bank bank);
+    void create(BankOfficeRequestDto bankOfficeRequestDto,
+                Long bankId);
 
-    /**
-     * Gets bank office by id.
-     *
-     * @param id the id
-     * @return the bank office by id
-     */
-    BankOffice getBankOfficeById(Long id);
+    BankOfficeResponseDto getById(Long id);
 
-    /**
-     * Update bank office by id.
-     *
-     * @param id the id
-     */
-    void updateBankOfficeById(Long id);
+    List<BankOfficeResponseDto> getAllByBankId(Long bankId);
 
-    /**
-     * Delete bank office by id.
-     *
-     * @param id the id
-     */
-    void deleteBankOfficeById(Long id);
+    void update(BankOfficeResponseDto bankOfficeResponseDto, Long bankId);
+
+    void deleteById(Long id);
 }

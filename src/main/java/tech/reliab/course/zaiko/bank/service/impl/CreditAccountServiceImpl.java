@@ -1,67 +1,118 @@
 package tech.reliab.course.zaiko.bank.service.impl;
 
-import tech.reliab.course.zaiko.bank.entity.*;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tech.reliab.course.zaiko.bank.exception.CustomNotFoundException;
+import tech.reliab.course.zaiko.bank.model.dto.request.CreditAccountRequestDto;
+import tech.reliab.course.zaiko.bank.model.dto.response.CreditAccountResponseDto;
+import tech.reliab.course.zaiko.bank.model.entity.*;
+import tech.reliab.course.zaiko.bank.repository.BankOfficeRepository;
+import tech.reliab.course.zaiko.bank.repository.BankRepository;
+import tech.reliab.course.zaiko.bank.repository.CreditAccountRepository;
+import tech.reliab.course.zaiko.bank.repository.PaymentAccountRepository;
 import tech.reliab.course.zaiko.bank.service.CreditAccountService;
+import tech.reliab.course.zaiko.bank.utlis.MappingUtils;
 
-import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 
+@Service
+@AllArgsConstructor
+@Transactional(readOnly = true)
 public class CreditAccountServiceImpl implements CreditAccountService {
 
-    /**
-     * @param id                   the id
-     * @param user                 the user
-     *                             <br>Name of the bank where the loan was taken
-     * @param startDate            the start date
-     * @param endDate              the end date
-     * @param monthsOfCreditAmount the month of credit amount
-     * @param creditSum            the credit sum
-     * @param monthlyPayment       the monthly payment
-     *                             <br>Interest rate (equals the interest rate of the bank)
-     * @param providedEmployee     the provided employee
-     * @param paymentAccount       the payment account
-     * @param bank                 the bank
-     * @return {@link CreditAccount}
-     */
+    private static final Random random = new Random();
+    private final PaymentAccountRepository paymentAccountRepository;
+    private final CreditAccountRepository creditAccountRepository;
+    private final BankOfficeRepository bankOfficeRepository;
+    private final BankRepository bankRepository;
+    private final MappingUtils mappingUtils;
+
+
+    @Transactional
     @Override
-    public CreditAccount createCreditAccount(Long id,
-                                             User user,
-                                             LocalDate startDate,
-                                             LocalDate endDate,
-                                             Integer monthsOfCreditAmount,
-                                             Double creditSum,
-                                             Double monthlyPayment,
-                                             Employee providedEmployee,
-                                             PaymentAccount paymentAccount,
-                                             Bank bank) {
-        CreditAccount creditAccount = CreditAccount.builder()
-                .id(id)
-                .user(user)
-                .bankName(bank.getName())
-                .startDate(startDate)
-                .endDate(endDate)
-                .monthsOfCreditAmount(monthsOfCreditAmount)
-                .creditSum(creditSum)
-                .monthlyPayment(monthlyPayment)
-                .interestRate(bank.getInterestRate())
-                .providedEmployee(providedEmployee)
-                .paymentAccount(paymentAccount)
-                .build();
-        user.getCreditAccounts().add(creditAccount);
-        return creditAccount;
+    public void create(CreditAccountRequestDto creditAccountRequestDto, Long payAccId) {
+        CreditAccount creditAccount = mappingUtils.mapToCreditAccountEntity(creditAccountRequestDto);
+        Long bankId = creditAccountRequestDto.getBankId();
+        creditAccount.setProvidedEmployee(
+                findRandomEmployeeByBankId(bankId)
+                        .orElseThrow(() -> new CustomNotFoundException(Employee.class, null)));
+        creditAccount.setPaymentAccount(paymentAccountRepository
+                .findById(payAccId)
+                .orElseThrow(() -> new CustomNotFoundException(PaymentAccount.class, payAccId)));
+        creditAccount.setInterestRate(bankRepository.getInterestRateById(bankId));
+        creditAccount.setMonthlyPayment(
+                Math.round((
+                        creditAccount.getCreditSum() * (1 + creditAccount.getInterestRate() / 100) /
+                                ChronoUnit.MONTHS.between(
+                                        creditAccount.getStartDate(),
+                                        creditAccount.getEndDate())
+                ) * 100) / 100.0
+        );
+        creditAccountRepository.save(creditAccount);
     }
 
     @Override
-    public CreditAccount getCreditAccountById(Long id) {
-        return null;
+    public CreditAccountResponseDto getById(Long id) {
+        return mappingUtils.mapToCreditAccountResponseDto(
+                creditAccountRepository
+                        .findById(id)
+                        .orElseThrow(() -> new CustomNotFoundException(CreditAccount.class, id))
+        );
     }
 
     @Override
-    public void updateCreditAccountById(Long id) {
-
+    public List<CreditAccountResponseDto> getAllByPayAccId(Long payAccId) {
+        if (!paymentAccountRepository.existsById(payAccId)) {
+            throw new CustomNotFoundException(PaymentAccount.class, payAccId);
+        }
+        return creditAccountRepository
+                .findAllByPaymentAccount_Id(payAccId)
+                .stream()
+                .map(mappingUtils::mapToCreditAccountResponseDto)
+                .toList();
     }
 
+    @Transactional
     @Override
-    public void deleteCreditAccountById(Long id) {
+    public void update(CreditAccountResponseDto creditAccountResponseDto) {
+        CreditAccount creditAccountDb =
+                creditAccountRepository
+                        .findById(creditAccountResponseDto.getId())
+                        .orElseThrow(() -> new CustomNotFoundException(CreditAccount.class, creditAccountResponseDto.getId()));
+        CreditAccount creditAccount = mappingUtils.mapToCreditAccountEntity(creditAccountResponseDto);
+        creditAccount.setMonthlyPayment(
+                Math.round((
+                        creditAccount.getCreditSum() * (1 + creditAccount.getInterestRate() / 100) /
+                                ChronoUnit.MONTHS.between(
+                                        creditAccount.getStartDate(),
+                                        creditAccount.getEndDate())
+                ) * 100) / 100.0
+        );
+        creditAccount.setProvidedEmployee(creditAccountDb.getProvidedEmployee());
+        creditAccount.setPaymentAccount(creditAccountDb.getPaymentAccount());
+        creditAccountRepository.save(creditAccount);
+    }
 
+    @Transactional
+    @Override
+    public void deleteById(Long id) {
+        if (!creditAccountRepository.existsById(id)) {
+            throw new CustomNotFoundException(User.class, id);
+        }
+        creditAccountRepository.deleteById(id);
+    }
+
+    private Optional<Employee> findRandomEmployeeByBankId(Long bankId) {
+        List<BankOffice> bankOffices = bankOfficeRepository.findAllByBank_Id(bankId);
+        BankOffice randomBankOffice = bankOffices.get(random.nextInt(bankOffices.size()));
+        List<Employee> bankOfficeEmployees = randomBankOffice.getEmployees();
+        if (bankOfficeEmployees.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(bankOfficeEmployees.get(random.nextInt(bankOfficeEmployees.size())));
     }
 }

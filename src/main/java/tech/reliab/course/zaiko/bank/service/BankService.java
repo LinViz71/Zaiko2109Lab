@@ -1,42 +1,19 @@
 package tech.reliab.course.zaiko.bank.service;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
+import tech.reliab.course.zaiko.bank.model.dto.request.BankRequestDto;
+import tech.reliab.course.zaiko.bank.model.dto.response.BankResponseDto;
 
-/**
- * The interface Bank service.
- */
+import java.util.List;
+
 public interface BankService {
 
-    /**
-     * Create bank.
-     *
-     * @param id   the id
-     * @param name the name
-     * @return the bank
-     */
-    Bank createBank(Long id, String name);
+    void create(BankRequestDto bankRequestDto);
 
-    /**
-     * Get bank by id.
-     *
-     * @param id the id
-     * @return the bank by id
-     */
-    Bank getBankById(Long id);
+    BankResponseDto getById(Long id);
 
-    /**
-     * Update bank by id.
-     *
-     * @param id   the id
-     * @param bank the bank
-     */
-    void updateBankById(Long id, Bank bank);
+    List<BankResponseDto> getAll();
 
-    /**
-     * Delete bank by id.
-     *
-     * @param id   the id
-     * @param bank the bank
-     */
-    void deleteBankById(Long id, Bank bank);
+    void update(BankResponseDto bankResponseDto);
+
+    void deleteById(Long id);
 }

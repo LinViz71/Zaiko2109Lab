@@ -1,55 +1,68 @@
 package tech.reliab.course.zaiko.bank.service.impl;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tech.reliab.course.zaiko.bank.exception.CustomNotFoundException;
+import tech.reliab.course.zaiko.bank.model.dto.request.BankRequestDto;
+import tech.reliab.course.zaiko.bank.model.dto.response.BankResponseDto;
+import tech.reliab.course.zaiko.bank.model.entity.Bank;
+import tech.reliab.course.zaiko.bank.repository.BankRepository;
 import tech.reliab.course.zaiko.bank.service.BankService;
+import tech.reliab.course.zaiko.bank.utlis.MappingUtils;
 
+import java.util.List;
 import java.util.Random;
 
-/**
- * The type Bank service.
- */
+@Service
+@AllArgsConstructor
+@Transactional(readOnly = true)
 public class BankServiceImpl implements BankService {
 
-    /**
-     * @param id   the id
-     * @param name the name<br>
-     *             <br>Number of offices (automatically filled and calculated when adding a new office, default 0 <br>
-     *             Number of ATMs (automatically filled and calculated when adding a new ATM, default 0<br>
-     *             Number of employees (automatically filled and calculated when adding a new employee, default 0<br>
-     *             Number of clients (automatically filled and calculated when adding a new client, default 0<br>
-     *             Bank rating (generated randomly, from 0 to 100, where 100 is the highest score, the higher the bank rating, the lower the interest rate)<br>
-     *             Total money in the bank (generated randomly, but not more than 1,000,000)<br>
-     *             Interest rate (generated randomly, but not more than 20%, however, the bank rating must be taken into account, the higher it is, the lower the interest rate should be generated)<br>
-     * @return {@link Bank}
-     */
+    private static final Random random = new Random();
+    private final BankRepository bankRepository;
+    private final MappingUtils mappingUtils;
+
     @Override
-    public Bank createBank(Long id, String name) {
-        Random random = new Random();
-        Bank bank = Bank.builder()
-                .id(id)
-                .name(name)
-                .officesAmount(0)
-                .atmsAmount(0)
-                .employeesAmount(0)
-                .customersAmount(0)
-                .rating(random.nextInt(101))
-                .totalMoney(Math.round(random.nextDouble(1_000_000) * 100.0) / 100.0)
-                .build();
+    @Transactional
+    public void create(BankRequestDto bankRequestDto) {
+        Bank bank = mappingUtils.mapToBankEntity(bankRequestDto);
+        bank.setRating(random.nextInt(101));
+        bank.setTotalMoney(Math.round(random.nextDouble(1_000_000) * 100.0) / 100.0);
         bank.setInterestRate(Math.round((20 - bank.getRating() * 0.2) * 100.0) / 100.0);
-        return bank;
+        bankRepository.save(bank);
     }
 
     @Override
-    public Bank getBankById(Long id) {
-        return null;
+    public BankResponseDto getById(Long id) {
+        return mappingUtils.mapToBankResponseDto(
+                bankRepository
+                        .findById(id)
+                        .orElseThrow(() -> new CustomNotFoundException(Bank.class, id))
+        );
     }
 
     @Override
-    public void updateBankById(Long id, Bank bank) {
+    public List<BankResponseDto> getAll() {
+        return bankRepository.findAll()
+                .stream()
+                .map(mappingUtils::mapToBankResponseDto)
+                .toList();
     }
 
     @Override
-    public void deleteBankById(Long id, Bank bank) {
+    @Transactional
+    public void update(BankResponseDto bankResponseDto) {
+        Bank bank = mappingUtils.mapToBankEntity(bankResponseDto);
+        bankRepository.save(bank);
+    }
 
+    @Override
+    @Transactional
+    public void deleteById(Long id) {
+        if (!bankRepository.existsById(id)) {
+            throw new CustomNotFoundException(Bank.class, id);
+        }
+        bankRepository.deleteById(id);
     }
 }

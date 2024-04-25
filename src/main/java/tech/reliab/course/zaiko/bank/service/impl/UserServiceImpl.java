@@ -1,46 +1,33 @@
 package tech.reliab.course.zaiko.bank.service.impl;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
-import tech.reliab.course.zaiko.bank.entity.User;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tech.reliab.course.zaiko.bank.exception.CustomNotFoundException;
+import tech.reliab.course.zaiko.bank.model.dto.request.UserRequestDto;
+import tech.reliab.course.zaiko.bank.model.dto.response.UserResponseDto;
+import tech.reliab.course.zaiko.bank.model.entity.User;
+import tech.reliab.course.zaiko.bank.repository.UserRepository;
 import tech.reliab.course.zaiko.bank.service.UserService;
+import tech.reliab.course.zaiko.bank.utlis.MappingUtils;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@Service
+@AllArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
-    /**
-     * @param id          the id
-     * @param fullName    the full name
-     * @param dateOfBirth the date of birth
-     * @param placeOfWork the place of work
-     *                    <br>Monthly income (generated randomly, but not more than 10,000)
-     * @param banks       the banks
-     *                    <br>Credit accounts (by default empty)
-     *                    <br>Debit accounts (by default empty)
-     *                    <br>Credit rating for the bank (generated randomly based on
-     *                    the monthly income, from less than 1000 - 100, from 1000 to 2000 - 200 and so on up to 10000)
-     * @return {@link User}
-     */
+    private static final Random random = new Random();
+    private final UserRepository userRepository;
+    private final MappingUtils mappingUtils;
+
+    @Transactional
     @Override
-    public User createUser(Long id,
-                           String fullName,
-                           LocalDate dateOfBirth,
-                           String placeOfWork,
-                           List<Bank> banks) {
-        Random random = new Random();
-        User user = User.builder()
-                .id(id)
-                .fullName(fullName)
-                .dateOfBirth(dateOfBirth)
-                .placeOfWork(placeOfWork)
-                .monthlyIncome(Math.round(random.nextDouble(10_000) * 100.0) / 100.0)
-                .banks(banks)
-                .creditAccounts(new ArrayList<>())
-                .paymentAccounts(new ArrayList<>())
-                .build();
+    public void create(UserRequestDto userRequestDto) {
+        User user = mappingUtils.mapToUserEntity(userRequestDto);
+        user.setMonthlyIncome(Math.round(random.nextDouble(10_000) * 100.0) / 100.0);
         user.setCreditRating(switch ((int) (user.getMonthlyIncome() / 1000)) {
             case 2 -> 200;
             case 3 -> 300;
@@ -53,22 +40,40 @@ public class UserServiceImpl implements UserService {
             case 10 -> 1000;
             default -> 100;
         });
-        banks.forEach(bank -> bank.setCustomersAmount(bank.getCustomersAmount() + 1));
-        return user;
+        userRepository.save(user);
     }
 
     @Override
-    public User getUserById(Long id) {
-        return null;
+    public UserResponseDto getById(Long id) {
+        return mappingUtils.mapToUserResponseDto(
+                userRepository
+                        .findById(id)
+                        .orElseThrow(() -> new CustomNotFoundException(User.class, id))
+        );
     }
 
     @Override
-    public void updateUserById(Long id) {
-
+    public List<UserResponseDto> getAll() {
+        return userRepository
+                .findAll()
+                .stream()
+                .map(mappingUtils::mapToUserResponseDto)
+                .toList();
     }
 
+    @Transactional
     @Override
-    public void deleteUserById(Long id) {
+    public void update(UserResponseDto userResponseDto) {
+        User user = mappingUtils.mapToUserEntity(userResponseDto);
+        userRepository.save(user);
+    }
 
+    @Transactional
+    @Override
+    public void deleteById(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new CustomNotFoundException(User.class, id);
+        }
+        userRepository.deleteById(id);
     }
 }

@@ -1,62 +1,80 @@
 package tech.reliab.course.zaiko.bank.service.impl;
 
-import tech.reliab.course.zaiko.bank.entity.Bank;
-import tech.reliab.course.zaiko.bank.entity.BankOffice;
-import tech.reliab.course.zaiko.bank.entity.Employee;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tech.reliab.course.zaiko.bank.exception.CustomNotFoundException;
+import tech.reliab.course.zaiko.bank.model.dto.request.EmployeeRequestDto;
+import tech.reliab.course.zaiko.bank.model.dto.response.EmployeeResponseDto;
+import tech.reliab.course.zaiko.bank.model.entity.BankOffice;
+import tech.reliab.course.zaiko.bank.model.entity.Employee;
+import tech.reliab.course.zaiko.bank.repository.BankOfficeRepository;
+import tech.reliab.course.zaiko.bank.repository.EmployeeRepository;
 import tech.reliab.course.zaiko.bank.service.EmployeeService;
+import tech.reliab.course.zaiko.bank.utlis.MappingUtils;
 
-import java.time.LocalDate;
+import java.util.List;
 
+@Service
+@AllArgsConstructor
+@Transactional(readOnly = true)
 public class EmployeeServiceImpl implements EmployeeService {
 
-    /**
-     * @param id             the id
-     * @param fullName       the full name
-     * @param dateOfBirth    the date of birth
-     * @param position       the position
-     * @param bank           the bank
-     * @param isRemote       is remote
-     * @param bankOffice     the bank office
-     * @param canIssueCredit can issue credit
-     * @param salary         the salary
-     * @return {@link Employee}
-     */
+
+    private final BankOfficeRepository bankOfficeRepository;
+    private final EmployeeRepository employeeRepository;
+    private final MappingUtils mappingUtils;
+
+
+    @Transactional
     @Override
-    public Employee createEmployee(Long id,
-                                   String fullName,
-                                   LocalDate dateOfBirth,
-                                   String position,
-                                   Bank bank,
-                                   Boolean isRemote,
-                                   BankOffice bankOffice,
-                                   Boolean canIssueCredit,
-                                   Double salary) {
-        bank.setEmployeesAmount(bank.getEmployeesAmount()+1);
-        return Employee.builder()
-                .id(id)
-                .fullName(fullName)
-                .dateOfBirth(dateOfBirth)
-                .position(position)
-                .bank(bank)
-                .isRemote(isRemote)
-                .bankOffice(bankOffice)
-                .canIssueCredit(canIssueCredit)
-                .salary(salary)
-                .build();
+    public void create(EmployeeRequestDto employeeRequestDto,
+                       Long bankOfficeId) {
+        Employee employee = mappingUtils.mapToEmployeeEntity(employeeRequestDto);
+        employee.setBankOffice(bankOfficeRepository
+                .findById(bankOfficeId)
+                .orElseThrow(() -> new CustomNotFoundException(BankOffice.class, bankOfficeId)));
+        employeeRepository.save(employee);
     }
 
     @Override
-    public Employee getEmployeeById(Long id) {
-        return null;
+    public EmployeeResponseDto getById(Long id) {
+        return mappingUtils.
+                mapToEmployeeResponseDto(employeeRepository
+                        .findById(id)
+                        .orElseThrow(() -> new CustomNotFoundException(Employee.class, id))
+                );
     }
 
     @Override
-    public void updateEmployeeById(Long id) {
-
+    public List<EmployeeResponseDto> getAllByBankOfficeId(Long bankOfficeId) {
+        if (!bankOfficeRepository.existsById(bankOfficeId)) {
+            throw new CustomNotFoundException(BankOffice.class, bankOfficeId);
+        }
+        return employeeRepository
+                .findAllByBankOffice_Id(bankOfficeId)
+                .stream()
+                .map(mappingUtils::mapToEmployeeResponseDto)
+                .toList();
     }
 
+    @Transactional
     @Override
-    public void deleteEmployeeById(Long id) {
+    public void update(EmployeeResponseDto employeeResponseDto, Long bankOfficeId) {
+        Employee employee = mappingUtils.mapToEmployeeEntity(employeeResponseDto);
+        employee.setBankOffice(
+                bankOfficeRepository
+                        .findById(bankOfficeId)
+                        .orElseThrow(() -> new CustomNotFoundException(BankOffice.class, bankOfficeId)));
+        employeeRepository.save(employee);
+    }
 
+    @Transactional
+    @Override
+    public void deleteById(Long id) {
+        if (!employeeRepository.existsById(id)) {
+            throw new CustomNotFoundException(Employee.class, id);
+        }
+        employeeRepository.deleteById(id);
     }
 }
